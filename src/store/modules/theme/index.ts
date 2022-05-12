@@ -15,6 +15,9 @@ export const useThemeStore = defineStore('theme-store', {
     /** naive-ui暗黑主题 */
     naiveTheme(state) {
       return state.darkMode ? darkTheme : undefined;
+    },
+    pageAnimateMode(state) {
+      return state.page.animate ? state.page.animateMode : undefined;
     }
   },
   actions: {
@@ -25,6 +28,16 @@ export const useThemeStore = defineStore('theme-store', {
     /** 设置暗黑模式 */
     setDarkMode(darkMode: boolean) {
       this.darkMode = darkMode;
+    },
+    /** 设置自动跟随系统主题 */
+    setFollowSystemTheme(visible: boolean) {
+      this.followSystemTheme = visible;
+    },
+    /** 自动跟随系统主题 */
+    autoFollowSystemMode(darkMode: boolean) {
+      if (this.followSystemTheme) {
+        this.darkMode = darkMode;
+      }
     },
     /** 切换/关闭 暗黑模式 */
     toggleDarkMode() {
@@ -37,6 +50,14 @@ export const useThemeStore = defineStore('theme-store', {
     /** 设置布局模式 */
     setLayoutMode(mode: EnumType.ThemeLayoutMode) {
       this.layout.mode = mode;
+    },
+    /** 设置侧边栏反转色 */
+    setSiderInverted(isInverted: boolean) {
+      this.sider.inverted = isInverted;
+    },
+    /** 设置头部反转色 */
+    setHeaderInverted(isInverted: boolean) {
+      this.header.inverted = isInverted;
     },
     /** 设置系统主题颜色 */
     setThemeColor(themeColor: string) {

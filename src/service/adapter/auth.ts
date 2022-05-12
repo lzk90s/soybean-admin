@@ -1,9 +1,8 @@
 export function userInfoAdapter(res: Service.RequestResult<ApiAuth.Adapter.UserInfoVO>): ApiAuth.UserInfo {
-  const { id, name, phone, role } = res.data!;
+  const { id, name } = res.data!;
   const result: ApiAuth.UserInfo = {
     userId: id,
     userName: name,
-    userPhone: phone,
     userRole: 'admin'
   };
   return result;

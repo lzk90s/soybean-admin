@@ -1,5 +1,5 @@
 import md5 from 'md5';
-import { adapterOfServiceResult } from '@/utils';
+import { serviceAdapter } from '@/utils';
 import { userInfoAdapter, routeInfoAdapter } from '../adapter/auth';
 import { request } from '../request';
 
@@ -14,11 +14,10 @@ export function fetchSmsCode(phone: string) {
 
 /**
  * 登录
- * @param phone - 手机号
- * @param pwdOrCode - 密码或验证码
- * @param type - 登录方式: pwd - 密码登录; sms - 验证码登录
+ * @param userName - 用户名
+ * @param password - 密码
  */
-export async function fetchLogin(phone: string, pwdOrCode: string, type: 'pwd' | 'sms') {
+export async function fetchLogin(phone: string, pwdOrCode: string) {
   const param = new FormData();
   param.append('username', phone);
   param.append('password', md5(pwdOrCode));
@@ -32,7 +31,7 @@ export async function fetchLogin(phone: string, pwdOrCode: string, type: 'pwd' |
 /** 获取用户信息 */
 export async function fetchUserInfo() {
   const res = await request.get<ApiAuth.Adapter.UserInfoVO>('/api/permission/user/info');
-  return adapterOfServiceResult(userInfoAdapter, res);
+  return serviceAdapter(userInfoAdapter, res);
 }
 
 /**
@@ -42,7 +41,7 @@ export async function fetchUserInfo() {
  */
 export async function fetchUserRoutes(userId: string) {
   const res = await request.get<AuthRoute.Route[]>('/api/permission/user/nav-tree');
-  return adapterOfServiceResult(routeInfoAdapter, res);
+  return serviceAdapter(routeInfoAdapter, res);
 }
 
 /**

@@ -1,14 +1,17 @@
-import type { Router } from 'vue-router';
 import { defineStore } from 'pinia';
-import { routes as staticRoutes } from '@/router';
+import { router, constantRoutes, routes as staticRoutes } from '@/router';
 import { fetchUserRoutes } from '@/service';
 import {
   getUserInfo,
   transformAuthRouteToMenu,
   transformAuthRoutesToVueRoutes,
   transformAuthRoutesToSearchMenus,
-  getCacheRoutes
+  getCacheRoutes,
+  filterAuthRoutesByUserPermission,
+  transformRoutePathToRouteName,
+  getConstantRouteNames
 } from '@/utils';
+import { useAuthStore } from '../auth';
 import { useTabStore } from '../tab';
 
 interface RouteState {
@@ -19,7 +22,7 @@ interface RouteState {
    */
   authRouteMode: ImportMetaEnv['VITE_AUTH_ROUTE_MODE'];
   /** 是否初始化了权限路由 */
-  isInitedAuthRoute: boolean;
+  isInitAuthRoute: boolean;
   /** 路由首页name(前端静态路由时生效，后端动态路由该值会被后端返回的值覆盖) */
   routeHomeName: AuthRoute.RouteKey;
   /** 菜单 */
@@ -33,68 +36,76 @@ interface RouteState {
 export const useRouteStore = defineStore('route-store', {
   state: (): RouteState => ({
     authRouteMode: import.meta.env.VITE_AUTH_ROUTE_MODE,
-    isInitedAuthRoute: false,
-    routeHomeName: 'dashboard_analysis',
+    isInitAuthRoute: false,
+    routeHomeName: transformRoutePathToRouteName(import.meta.env.VITE_ROUTE_HOME_PATH),
     menus: [],
     searchMenus: [],
     cacheRoutes: []
   }),
   actions: {
+    resetRouteStore() {
+      this.resetRoutes();
+      this.$reset();
+    },
+    /** 重置路由数据，保留固定路由 */
+    resetRoutes() {
+      const routes = router.getRoutes();
+      const constantRouteNames = getConstantRouteNames(constantRoutes);
+      routes.forEach(route => {
+        const name: AuthRoute.RouteKey = (route.name || 'root') as AuthRoute.RouteKey;
+        if (!constantRouteNames.includes(name)) {
+          router.removeRoute(name);
+        }
+      });
+    },
     /**
      * 处理权限路由
      * @param routes - 权限路由
-     * @param router - 路由实例
      */
-    handleAuthRoutes(routes: AuthRoute.Route[], router: Router) {
+    handleAuthRoutes(routes: AuthRoute.Route[]) {
       this.menus = transformAuthRouteToMenu(routes);
       this.searchMenus = transformAuthRoutesToSearchMenus(routes);
 
       const vueRoutes = transformAuthRoutesToVueRoutes(routes);
+
       vueRoutes.forEach(route => {
         router.addRoute(route);
       });
 
       this.cacheRoutes = getCacheRoutes(vueRoutes);
     },
-    /**
-     * 初始化动态路由
-     * @param router - 路由实例
-     */
-    async initDynamicRoute(router: Router) {
+    /** 初始化动态路由 */
+    async initDynamicRoute() {
       const { userId } = getUserInfo();
       const { data } = await fetchUserRoutes(userId);
       if (data) {
         this.routeHomeName = data.home;
-        this.handleAuthRoutes(data.routes, router);
+        this.handleAuthRoutes(data.routes);
       }
     },
-    /**
-     * 初始化静态路由
-     * @param router - 路由实例
-     */
-    async initStaticRoute(router: Router) {
-      // 先根据用户权限过滤一下staticRoutes
-
-      this.handleAuthRoutes(staticRoutes, router);
+    /** 初始化静态路由 */
+    async initStaticRoute() {
+      const auth = useAuthStore();
+      const routes = filterAuthRoutesByUserPermission(staticRoutes, auth.userInfo.userRole);
+      this.handleAuthRoutes(routes);
     },
-    /**
-     * 初始化权限路由
-     * @param router - 路由实例
-     */
-    async initAuthRoute(router: Router) {
+    /** 初始化权限路由 */
+    async initAuthRoute() {
       const { initHomeTab } = useTabStore();
       const { userId } = getUserInfo();
+
       if (!userId) return;
 
       const isDynamicRoute = this.authRouteMode === 'dynamic';
       if (isDynamicRoute) {
-        await this.initDynamicRoute(router);
+        await this.initDynamicRoute();
       } else {
-        await this.initStaticRoute(router);
+        await this.initStaticRoute();
       }
 
       initHomeTab(this.routeHomeName, router);
-      this.isInitedAuthRoute = true;
+
+      this.isInitAuthRoute = true;
     }
   }
 });
