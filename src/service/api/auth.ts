@@ -1,4 +1,7 @@
-import { mockRequest } from '../request';
+import md5 from 'md5';
+import { adapterOfServiceResult } from '@/utils';
+import { userInfoAdapter, routeInfoAdapter } from '../adapter/auth';
+import { request } from '../request';
 
 /**
  * 获取验证码
@@ -6,7 +9,7 @@ import { mockRequest } from '../request';
  * @returns - 返回boolean值表示是否发送成功
  */
 export function fetchSmsCode(phone: string) {
-  return mockRequest.post<boolean>('/getSmsCode', { phone });
+  return request.post<boolean>('/getSmsCode', { phone });
 }
 
 /**
@@ -15,16 +18,21 @@ export function fetchSmsCode(phone: string) {
  * @param pwdOrCode - 密码或验证码
  * @param type - 登录方式: pwd - 密码登录; sms - 验证码登录
  */
-export function fetchLogin(phone: string, pwdOrCode: string, type: 'pwd' | 'sms') {
-  if (type === 'pwd') {
-    return mockRequest.post<ApiAuth.Token>('/loginByPwd', { phone, pwd: pwdOrCode });
-  }
-  return mockRequest.post<ApiAuth.Token>('/loginByCode', { phone, code: pwdOrCode });
+export async function fetchLogin(phone: string, pwdOrCode: string, type: 'pwd' | 'sms') {
+  const param = new FormData();
+  param.append('username', phone);
+  param.append('password', md5(pwdOrCode));
+  param.append('grant_type', 'password');
+  param.append('grant_type', 'all');
+  param.append('client_id', 'web');
+  param.append('client_secret', 'web-secret');
+  return request.post<ApiAuth.Token>('/api/uaa/oauth/token', param);
 }
 
 /** 获取用户信息 */
-export function fetchUserInfo() {
-  return mockRequest.get<ApiAuth.UserInfo>('/getUserInfo');
+export async function fetchUserInfo() {
+  const res = await request.get<ApiAuth.Adapter.UserInfoVO>('/api/permission/user/info');
+  return adapterOfServiceResult(userInfoAdapter, res);
 }
 
 /**
@@ -32,8 +40,9 @@ export function fetchUserInfo() {
  * @param userId - 用户id
  * @description 后端根据用户id查询到对应的角色类型，并将路由筛选出对应角色的路由数据返回前端
  */
-export function fetchUserRoutes(userId: string) {
-  return mockRequest.post<ApiRoute.Route>('/getUserRoutes', { userId });
+export async function fetchUserRoutes(userId: string) {
+  const res = await request.get<AuthRoute.Route[]>('/api/permission/user/nav-tree');
+  return adapterOfServiceResult(routeInfoAdapter, res);
 }
 
 /**
@@ -41,5 +50,5 @@ export function fetchUserRoutes(userId: string) {
  * @param refreshToken
  */
 export function fetchUpdateToken(refreshToken: string) {
-  return mockRequest.post<ApiAuth.Token>('/updateToken', { refreshToken });
+  return request.post<ApiAuth.Token>('/updateToken', { refreshToken });
 }

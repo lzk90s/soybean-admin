@@ -50,8 +50,8 @@ const { toLoginModule } = useRouterPush();
 
 const formRef = ref<(HTMLElement & FormInst) | null>(null);
 const model = reactive({
-  phone: '15170283876',
-  pwd: 'abc123456'
+  phone: '17316906535',
+  pwd: '123456'
 });
 const rules: FormRules = {
   phone: formRules.phone,

@@ -31,7 +31,7 @@ export default class CustomAxiosInstance {
       codeKey: 'code',
       dataKey: 'data',
       msgKey: 'message',
-      successCode: 200
+      successCode: 0
     }
   ) {
     this.backendConfig = backendConfig;
@@ -49,7 +49,11 @@ export default class CustomAxiosInstance {
           const contentType = handleConfig.headers['Content-Type'] as string;
           handleConfig.data = await transformRequestData(handleConfig.data, contentType);
           // 设置token
-          handleConfig.headers.Authorization = getToken();
+          let token = getToken();
+          if (token !== undefined && token !== '') {
+            token = `Bearer ${token}`;
+          }
+          handleConfig.headers.Authorization = token;
         }
         return handleConfig;
       },

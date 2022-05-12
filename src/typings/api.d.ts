@@ -9,6 +9,15 @@ declare namespace ApiAuth {
   }
   /** 返回的用户信息 */
   type UserInfo = Auth.UserInfo;
+
+  declare namespace Adapter {
+    interface UserInfoVO {
+      id: string;
+      name: string;
+      phone: string;
+      role: string;
+    }
+  }
 }
 
 /** 后端返回的路由相关类型 */

@@ -5,7 +5,7 @@ export const constantRoutes: AuthRoute.Route[] = [
   {
     name: 'root',
     path: '/',
-    redirect: '/dashboard/analysis',
+    redirect: '/dashboard',
     meta: {
       title: 'Root'
     }
