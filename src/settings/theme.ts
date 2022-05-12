@@ -30,6 +30,7 @@ const themeColorList = [
 
 const defaultThemeSetting: Theme.Setting = {
   darkMode: false,
+  followSystemTheme: true,
   layout: {
     minWidth: 900,
     mode: 'vertical',
@@ -52,6 +53,7 @@ const defaultThemeSetting: Theme.Setting = {
   fixedHeaderAndTab: true,
   showReload: true,
   header: {
+    inverted: false,
     height: 56,
     crumb: {
       visible: true,
@@ -69,6 +71,7 @@ const defaultThemeSetting: Theme.Setting = {
     isCache: true
   },
   sider: {
+    inverted: false,
     width: 220,
     collapsedWidth: 64,
     mixWidth: 80,

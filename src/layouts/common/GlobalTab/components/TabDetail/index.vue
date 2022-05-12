@@ -28,7 +28,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, nextTick, watch } from 'vue';
 import { useEventListener } from '@vueuse/core';
-import { ChromeTab, ButtonTab } from 'soybean-admin-tab';
+import { ChromeTab, ButtonTab } from '@soybeanjs/vue-admin-tab';
 import { Icon } from '@iconify/vue';
 import { useThemeStore, useTabStore } from '@/store';
 import { setTabRoutes } from '@/utils';
@@ -50,7 +50,7 @@ const activeComponent = computed(() => (isChromeMode.value ? ChromeTab : ButtonT
 const tabRef = ref<HTMLElement>();
 async function getActiveTabClientX() {
   await nextTick();
-  if (tabRef.value) {
+  if (tabRef.value && tabRef.value.children.length && tabRef.value.children[tab.activeTabIndex]) {
     const activeTabElement = tabRef.value.children[tab.activeTabIndex];
     const { x, width } = activeTabElement.getBoundingClientRect();
     const clientX = x + width / 2;

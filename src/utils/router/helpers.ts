@@ -2,7 +2,13 @@ import type { RouteRecordRaw } from 'vue-router';
 import { consoleError } from '../common';
 import { getLayoutComponent, getViewComponent } from './component';
 
-type ComponentAction = Record<AuthRoute.RouteComponent, () => void>;
+/**
+ * 获取所有固定路由的名称集合
+ * @param routes - 固定路由
+ */
+export function getConstantRouteNames(routes: AuthRoute.Route[]) {
+  return routes.map(route => getConstantRouteName(route)).flat(1);
+}
 
 /**
  * 将权限路由转换成vue路由
@@ -30,6 +36,48 @@ export function transformAuthRoutesToSearchMenus(routes: AuthRoute.Route[], tree
     return acc;
   }, treeMap);
 }
+
+/** 将路由名字转换成路由路径 */
+export function transformRouteNameToRoutePath(
+  name: Exclude<AuthRoute.RouteKey, 'not-found-page'>
+): AuthRoute.RoutePath {
+  const rootPath: AuthRoute.RoutePath = '/';
+  if (name === 'root') return rootPath;
+
+  const splitMark: AuthRoute.RouteSplitMark = '_';
+  const pathSplitMark = '/';
+  const path = name.split(splitMark).join(pathSplitMark);
+
+  return (pathSplitMark + path) as AuthRoute.RoutePath;
+}
+
+/** 将路由路径转换成路由名字 */
+export function transformRoutePathToRouteName(
+  path: Exclude<AuthRoute.RoutePath, '/not-found-page' | '/:pathMatch(.*)*'>
+): AuthRoute.RouteKey {
+  if (path === '/') return 'root';
+
+  const pathSplitMark = '/';
+  const routeSplitMark: AuthRoute.RouteSplitMark = '_';
+
+  const name = path.split(pathSplitMark).slice(1).join(routeSplitMark) as AuthRoute.RouteKey;
+
+  return name;
+}
+
+/**
+ * 获取所有固定路由的名称集合
+ * @param route - 固定路由
+ */
+function getConstantRouteName(route: AuthRoute.Route) {
+  const names = [route.name];
+  if (hasChildren(route)) {
+    names.push(...route.children!.map(item => getConstantRouteName(item)).flat(1));
+  }
+  return names;
+}
+
+type ComponentAction = Record<AuthRoute.RouteComponent, () => void>;
 
 /**
  * 将单个权限路由转换成vue路由

@@ -1,9 +1,11 @@
 import { unref } from 'vue';
 import { defineStore } from 'pinia';
-import { router as globalRouter } from '@/router';
+import { router } from '@/router';
 import { useRouterPush } from '@/composables';
 import { fetchLogin, fetchUserInfo } from '@/service';
 import { getUserInfo, getToken, setUserInfo, setToken, setRefreshToken, clearAuthStorage } from '@/utils';
+import { useTabStore } from '../tab';
+import { useRouteStore } from '../route';
 
 interface AuthState {
   /** 用户信息 */
@@ -30,23 +32,54 @@ export const useAuthStore = defineStore('auth-store', {
     /** 重置auth状态 */
     resetAuthStore() {
       const { toLogin } = useRouterPush(false);
-      const route = unref(globalRouter.currentRoute);
+      const { resetTabStore } = useTabStore();
+      const { resetRouteStore } = useRouteStore();
+      const route = unref(router.currentRoute);
 
       clearAuthStorage();
       this.$reset();
+
+      resetTabStore();
+      resetRouteStore();
 
       if (route.meta.requiresAuth) {
         toLogin();
       }
     },
     /**
+     * 处理登录后成功或失败的逻辑
+     * @param backendToken - 返回的token
+     */
+    async handleActionAfterLogin(backendToken: ApiAuth.Token) {
+      const { toLoginRedirect } = useRouterPush(false);
+
+      const loginSuccess = await this.loginByToken(backendToken);
+
+      if (loginSuccess) {
+        // 跳转登录后的地址
+        toLoginRedirect();
+
+        // 登录成功弹出欢迎提示
+        window.$notification?.success({
+          title: '登录成功!',
+          content: `欢迎回来，${this.userInfo.userName}!`,
+          duration: 3000
+        });
+
+        return;
+      }
+
+      // 不成功则重置状态
+      this.resetAuthStore();
+    },
+    /**
      * 根据token进行登录
      * @param backendToken - 返回的token
      */
     async loginByToken(backendToken: ApiAuth.Token) {
-      const { toLoginRedirect } = useRouterPush(false);
+      let successFlag = false;
 
-      // 先把token存储到缓存中
+      // 先把token存储到缓存中(后面接口的请求头需要token)
       const { token, refreshToken } = backendToken;
       setToken(token);
       setRefreshToken(refreshToken);
@@ -58,35 +91,55 @@ export const useAuthStore = defineStore('auth-store', {
         setUserInfo(data);
 
         // 更新状态
-        Object.assign(this, { userInfo: data, token });
+        this.userInfo = data;
+        this.token = token;
 
-        // 跳转登录后的地址
-        toLoginRedirect();
-
-        // 登录成功弹出欢迎提示
-        window.$notification?.success({
-          title: '登录成功!',
-          content: `欢迎回来，${data.userName}!`,
-          duration: 3000
-        });
-      } else {
-        // 不成功则重置状态
-        this.resetAuthStore();
+        successFlag = true;
       }
+
+      return successFlag;
     },
     /**
      * 登录
-     * @param phone - 手机号
-     * @param pwdOrCode - 密码或验证码
-     * @param type - 登录方式: pwd - 密码登录; sms - 验证码登录
+     * @param userName - 用户名
+     * @param password - 密码
      */
-    async login(phone: string, pwdOrCode: string, type: 'pwd' | 'sms') {
+    async login(userName: string, password: string) {
       this.loginLoading = true;
-      const { data } = await fetchLogin(phone, pwdOrCode, type);
+      const { data } = await fetchLogin(userName, password);
       if (data) {
-        await this.loginByToken(data);
+        await this.handleActionAfterLogin(data);
       }
       this.loginLoading = false;
+    },
+    /**
+     * 更换用户权限(切换账号)
+     * @param userRole
+     */
+    async updateUserRole(userRole: Auth.RoleType) {
+      const { resetRouteStore, initAuthRoute } = useRouteStore();
+
+      const accounts: Record<Auth.RoleType, { userName: string; password: string }> = {
+        super: {
+          userName: 'Super',
+          password: 'super123'
+        },
+        admin: {
+          userName: 'Admin',
+          password: 'admin123'
+        },
+        user: {
+          userName: 'User01',
+          password: 'user01123'
+        }
+      };
+      const { userName, password } = accounts[userRole];
+      const { data } = await fetchLogin(userName, password);
+      if (data) {
+        await this.loginByToken(data);
+        resetRouteStore();
+        initAuthRoute();
+      }
     }
   }
 });

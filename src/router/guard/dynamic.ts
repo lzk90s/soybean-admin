@@ -1,4 +1,4 @@
-import type { Router, RouteLocationNormalized, NavigationGuardNext } from 'vue-router';
+import type { RouteLocationNormalized, NavigationGuardNext } from 'vue-router';
 import { routeName } from '@/router';
 import { useRouteStore } from '@/store';
 import { getToken } from '@/utils';
@@ -9,14 +9,13 @@ import { getToken } from '@/utils';
 export async function createDynamicRouteGuard(
   to: RouteLocationNormalized,
   _from: RouteLocationNormalized,
-  next: NavigationGuardNext,
-  router: Router
+  next: NavigationGuardNext
 ) {
   const route = useRouteStore();
   const isLogin = Boolean(getToken());
 
   // 初始化权限路由
-  if (!route.isInitedAuthRoute) {
+  if (!route.isInitAuthRoute) {
     // 未登录情况下直接回到登录页，登录成功后再加载权限路由
     if (!isLogin) {
       if (to.name === routeName('login')) {
@@ -28,7 +27,7 @@ export async function createDynamicRouteGuard(
       return false;
     }
 
-    await route.initAuthRoute(router);
+    await route.initAuthRoute();
 
     if (to.name === routeName('not-found-page')) {
       // 动态路由没有加载导致被not-found-page路由捕获，等待权限路由加载好了，回到之前的路由

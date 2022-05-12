@@ -55,12 +55,11 @@ module.exports = {
             group: 'external',
             position: 'before'
           },
-          // ui framework, such as "naive-ui"
-          // {
-          //   pattern: 'naive-ui',
-          //   group: 'external',
-          //   position: 'before'
-          // },
+          {
+            pattern: 'naive-ui',
+            group: 'external',
+            position: 'before'
+          },
           {
             pattern: '@/config',
             group: 'internal',
@@ -142,13 +141,7 @@ module.exports = {
             position: 'before'
           }
         ],
-        pathGroupsExcludedImportTypes: [
-          'vue',
-          'vue-router',
-          'vuex',
-          'pinia'
-          // 'naive-ui'
-        ]
+        pathGroupsExcludedImportTypes: ['vue', 'vue-router', 'vuex', 'pinia', 'naive-ui']
       }
     ],
     'import/no-unresolved': 'off',
@@ -161,7 +154,6 @@ module.exports = {
         ignorePropertyModificationsFor: ['state', 'acc', 'e']
       }
     ],
-    'no-plusplus': 'off',
     'no-shadow': 'off',
     'no-unused-vars': 'off',
     'no-use-before-define': 'off',
@@ -171,17 +163,7 @@ module.exports = {
         ignores: ['index']
       }
     ],
-    '@typescript-eslint/ban-types': [
-      'error',
-      {
-        types: {
-          '{}': {
-            message: 'Use object instead',
-            fixWith: 'object'
-          }
-        }
-      }
-    ],
+    '@typescript-eslint/ban-types': 'off',
     '@typescript-eslint/no-empty-interface': [
       'error',
       {

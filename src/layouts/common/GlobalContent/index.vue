@@ -4,7 +4,13 @@
     class="h-full bg-[#f6f9f8] dark:bg-[#101014] transition duration-300 ease-in-out"
   >
     <router-view v-slot="{ Component, route }">
-      <transition :name="theme.page.animate ? theme.page.animateMode : undefined" mode="out-in" appear>
+      <transition
+        :name="theme.pageAnimateMode"
+        mode="out-in"
+        :appear="true"
+        @before-leave="handleBeforeLeave"
+        @after-enter="handleAfterEnter"
+      >
         <keep-alive :include="routeStore.cacheRoutes">
           <component :is="Component" v-if="app.reloadFlag" :key="route.path" />
         </keep-alive>
@@ -14,7 +20,6 @@
 </template>
 
 <script setup lang="ts">
-import { RouterView } from 'vue-router';
 import { useAppStore, useThemeStore, useRouteStore } from '@/store';
 
 interface Props {
@@ -22,12 +27,26 @@ interface Props {
   showPadding?: boolean;
 }
 
+interface Emits {
+  /** 禁止主体溢出 */
+  (e: 'hide-main-overflow', hidden: boolean): void;
+}
+
 withDefaults(defineProps<Props>(), {
   showPadding: true
 });
 
+const emit = defineEmits<Emits>();
+
 const app = useAppStore();
 const theme = useThemeStore();
 const routeStore = useRouteStore();
+
+function handleBeforeLeave() {
+  emit('hide-main-overflow', true);
+}
+function handleAfterEnter() {
+  emit('hide-main-overflow', false);
+}
 </script>
 <style scoped></style>

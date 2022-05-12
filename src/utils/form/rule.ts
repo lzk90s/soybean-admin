@@ -1,6 +1,6 @@
 import type { Ref } from 'vue';
 import type { FormItemRule } from 'naive-ui';
-import { REGEXP_PHONE, REGEXP_PWD, REGEXP_CODE_SIX, REGEXP_EMAIL } from '@/config';
+import { REGEXP_PHONE, REGEXP_CODE_SIX, REGEXP_EMAIL } from '@/config';
 
 /** 表单规则 */
 interface CustomFormRules {
@@ -22,7 +22,7 @@ export const formRules: CustomFormRules = {
   ],
   pwd: [
     { required: true, message: '请输入密码' },
-    { pattern: '', message: '密码为8-18位数字/字符/符号，至少2种组合', trigger: 'input' }
+    { pattern: '', message: '密码为6-18位数字/字符/符号，至少2种组合', trigger: 'input' }
   ],
   code: [
     { required: true, message: '请输入验证码' },

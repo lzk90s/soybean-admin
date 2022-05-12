@@ -1,5 +1,5 @@
 <template>
-  <soybean-admin-layout
+  <admin-layout
     :mode="mode"
     :min-width="theme.layout.minWidth"
     :fixed-header-and-tab="theme.fixedHeaderAndTab"
@@ -10,6 +10,7 @@
     :sider-width="siderWidth"
     :sider-collapsed-width="siderCollapsedWidth"
     :sider-collapse="app.siderCollapse"
+    :add-main-overflow-hidden="addMainOverflowHidden"
     :fixed-footer="theme.footer.fixed"
   >
     <template #header>
@@ -21,23 +22,26 @@
     <template #sider>
       <global-sider />
     </template>
-    <global-content />
+    <global-content @hide-main-overflow="setAddMainOverflowHidden" />
     <template #footer>
       <global-footer />
     </template>
-  </soybean-admin-layout>
+  </admin-layout>
   <setting-drawer />
 </template>
 
 <script setup lang="ts">
-import SoybeanAdminLayout from 'soybean-admin-layout';
+import AdminLayout from '@soybeanjs/vue-admin-layout';
 import { useAppStore, useThemeStore } from '@/store';
 import { useBasicLayout } from '@/composables';
+import { useBoolean } from '@/hooks';
 import { SettingDrawer, GlobalHeader, GlobalTab, GlobalSider, GlobalContent, GlobalFooter } from '../common';
 
 const app = useAppStore();
 const theme = useThemeStore();
 
 const { mode, headerProps, siderVisible, siderWidth, siderCollapsedWidth } = useBasicLayout();
+
+const { bool: addMainOverflowHidden, setBool: setAddMainOverflowHidden } = useBoolean();
 </script>
 <style scoped></style>
