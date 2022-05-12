@@ -12,7 +12,7 @@ const serviceEnvConfig: ServiceEnv = {
     proxy: '/api'
   },
   prod: {
-    url: 'http://localhost:8080',
+    url: 'http://localhost:28888',
     proxy: '/api'
   }
 };
